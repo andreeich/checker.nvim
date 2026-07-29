@@ -33,4 +33,33 @@ M.eslint = function(line)
   }
 end
 
+-- oxlint --format unix: file.ts:10:5: message [Error/eslint(rule)]
+-- oxlint --format agent: file.ts:10:5: error eslint(rule): message
+M.oxlint = function(line)
+  local file, row, col, kind, msg =
+    line:match "^(.+):(%d+):(%d+): (%a+)%s+[^:]+:%s+(.+)"
+  if file then
+    return {
+      filename = file,
+      lnum = tonumber(row),
+      col = tonumber(col),
+      text = msg,
+      type = kind:lower() == "error" and "E" or "W",
+    }
+  end
+
+  file, row, col, msg = line:match "^(.+):(%d+):(%d+): (.+)"
+  if not file then
+    return nil
+  end
+  local bracket = msg:match "%[(%a+)/"
+  return {
+    filename = file,
+    lnum = tonumber(row),
+    col = tonumber(col),
+    text = msg,
+    type = bracket and bracket:lower() == "error" and "E" or "W",
+  }
+end
+
 return M
